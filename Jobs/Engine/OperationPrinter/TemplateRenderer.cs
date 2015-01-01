@@ -14,9 +14,13 @@
 // along with AlarmWorkflow.  If not, see <http://www.gnu.org/licenses/>.
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 using AlarmWorkflow.Shared.Core;
 using AlarmWorkflow.Shared.Diagnostics;
@@ -41,16 +45,28 @@ namespace AlarmWorkflow.Job.OperationPrinter
         /// <returns></returns>
         internal static Image RenderOperation(PropertyLocation source, Operation operation, string templateFile, Size size)
         {
-            TemplateObject to = new TemplateObject();
+            ScriptingObject to = new ScriptingObject();
+            to.Source = source;
             to.Operation = operation;
-            to.RouteImageFilePath = RoutePlanHelper.GetRouteAsStoredFile(source, operation.Einsatzort);
 
             Image image = null;
+
+            string tempFilePath = GetTemporaryHtmlFilePath(operation, templateFile);
+            FileInfo fi = new FileInfo(tempFilePath);
+
             try
             {
                 string html = CreateHtml(templateFile, to);
 
-                image = RenderOperationWithBrowser(to, html, size);
+                using (FileStream stream = fi.Create())
+                {
+                    fi.Attributes = FileAttributes.Temporary;
+
+                    byte[] content = Encoding.Default.GetBytes(html);
+                    stream.Write(content, 0, content.Length);
+                }
+
+                image = RenderOperationWithBrowser(fi, to, size);
             }
             catch (Exception ex)
             {
@@ -58,28 +74,41 @@ namespace AlarmWorkflow.Job.OperationPrinter
             }
             finally
             {
-                TryDeleteRouteImageFile(to);
+                fi.Delete();
             }
 
             return image;
         }
 
-        private static string CreateHtml(string templateFile, TemplateObject to)
+        private static string GetTemporaryHtmlFilePath(Operation operation, string templateFile)
+        {
+            return Path.ChangeExtension(templateFile, operation.Id.ToString() + ".htm");
+        }
+
+        private static string CreateHtml(string templateFile, ScriptingObject to)
         {
             StringBuilder sb = new StringBuilder();
 
-            foreach (string line in File.ReadAllLines(templateFile))
+            IEnumerable<string> lines = File.ReadAllLines(templateFile).Where(_ => !string.IsNullOrWhiteSpace(_));
+
+            foreach (string item in lines)
             {
-                if (!string.IsNullOrWhiteSpace(line))
+                string line = item;
+
+                /* Replace some special lines we might expect...
+                 */
+                if (line.Contains("var var_awTestMode = true"))
                 {
-                    sb.AppendLine(ObjectFormatter.ToString(to, line));
+                    line = "var var_awTestMode = false;";
                 }
+
+                sb.AppendLine(ObjectFormatter.ToString(to, line));
             }
 
             return sb.ToString();
         }
 
-        private static Image RenderOperationWithBrowser(TemplateObject to, string htmlToRender, Size size)
+        private static Image RenderOperationWithBrowser(FileInfo file, ScriptingObject obj, Size size)
         {
             using (WebBrowser w = new WebBrowser())
             {
@@ -87,12 +116,29 @@ namespace AlarmWorkflow.Job.OperationPrinter
                 w.ScrollBarsEnabled = false;
                 w.ScriptErrorsSuppressed = true;
 
-                w.DocumentText = htmlToRender;
+                w.ObjectForScripting = obj;
+                w.Navigate(new Uri("file:///" + file.FullName.Replace("\\", "/"), UriKind.Absolute));
 
-                while (w.ReadyState != WebBrowserReadyState.Complete)
+                Stopwatch s = Stopwatch.StartNew();
+
+                while (true)
                 {
+                    if (w.ReadyState == WebBrowserReadyState.Complete && obj.IsClientSideScriptReady)
+                    {
+                        break;
+                    }
+
+                    // TODO: Introduce timeout setting!
+                    if (s.ElapsedMilliseconds >= 10000)
+                    {
+                        Logger.Instance.LogFormat(LogType.Warning, typeof(TemplateRenderer), "Exceeded timeout for rendering template! The template may not be complete.");
+                        break;
+                    }
+
                     // Pump the message queue for the web browser.
                     Application.DoEvents();
+
+                    Thread.Sleep(1);
                 }
 
                 // Set the size of the WebBrowser control
@@ -112,21 +158,6 @@ namespace AlarmWorkflow.Job.OperationPrinter
                     w.DrawToBitmap(bitmap, new Rectangle(0, 0, w.Width, w.Height));
                     return (Image)bitmap.Clone();
                 }
-            }
-        }
-
-        private static void TryDeleteRouteImageFile(TemplateObject to)
-        {
-            try
-            {
-                if (File.Exists(to.RouteImageFilePath))
-                {
-                    File.Delete(to.RouteImageFilePath);
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Instance.LogException(typeof(TemplateRenderer), ex);
             }
         }
 
