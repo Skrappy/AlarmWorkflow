@@ -35,6 +35,7 @@ namespace AlarmWorkflow.Job.OperationPrinter
     {
         #region Constants
 
+        private static readonly int WebBrowserAfterCompleteGracePeriodMs = 500;
         private static readonly bool KeepTempHtmlAfterFinish = false;
 
         #endregion
@@ -148,6 +149,12 @@ namespace AlarmWorkflow.Job.OperationPrinter
                 {
                     if (w.ReadyState == WebBrowserReadyState.Complete && obj.IsClientSideScriptReady)
                     {
+                        /* Hint: It appears that if we exit right here, the browser isn't quite finished with drawing yet.
+                         * Adding a little grace period followed by a DoEvents() seems to work reliably.
+                         */
+                        Thread.Sleep(WebBrowserAfterCompleteGracePeriodMs);
+                        Application.DoEvents();
+
                         break;
                     }
 

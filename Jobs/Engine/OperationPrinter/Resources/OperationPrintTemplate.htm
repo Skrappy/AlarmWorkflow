@@ -1,6 +1,18 @@
-﻿<!DOCTYPE HTML>
-<html>
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
+    <!-- NOTE: This appears to be required for the hosted .Net-IE!
+        If this is not present, then the hosted IE fails to load jQuery because it cannot find "addEventListener",
+        and the rest then fails because jQuery failed to load and it doesn't recognize "$".
+
+        Adding this statement helps out, but may yield problems with out-of-date browsers (need verification!)??
+        IE=10 works reliably, other values (IE=9 etc.) seem not to work.
+
+        When running the HTML/JS in the "real" IE (through Windows), it works even without this statement...
+     -->
+    <meta http-equiv="x-ua-compatible" content="IE=10" />
+
     <title></title>
 </head>
 <body>
