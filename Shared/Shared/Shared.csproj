@@ -42,6 +42,9 @@
     <Reference Include="log4net">
       <HintPath>..\..\Resources\Assemblies\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\Resources\Assemblies\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -52,6 +55,7 @@
     <Compile Include="Core\AssertionFailedException.cs" />
     <Compile Include="Core\Assertions.cs" />
     <Compile Include="Core\AssertionType.cs" />
+    <Compile Include="Core\Json.cs" />
     <Compile Include="Core\ProcessWrapper.cs" />
     <Compile Include="Core\CsvHelper.cs" />
     <Compile Include="Core\DisposableObject.cs" />
