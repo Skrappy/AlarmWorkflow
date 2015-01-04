@@ -33,6 +33,21 @@ namespace AlarmWorkflow.Job.OperationPrinter
     /// </summary>
     static class TemplateRenderer
     {
+        #region Constants
+
+        private static readonly bool KeepTempHtmlAfterFinish = false;
+
+        #endregion
+
+        #region Constructors
+
+        static TemplateRenderer()
+        {
+            KeepTempHtmlAfterFinish = Debugger.IsAttached;
+        }
+
+        #endregion
+
         #region Methods
 
         /// <summary>
@@ -45,10 +60,6 @@ namespace AlarmWorkflow.Job.OperationPrinter
         /// <returns></returns>
         internal static Image RenderOperation(PropertyLocation source, Operation operation, string templateFile, Size size)
         {
-            ScriptingObject to = new ScriptingObject();
-            to.Source = source;
-            to.Operation = operation;
-
             Image image = null;
 
             string tempFilePath = GetTemporaryHtmlFilePath(operation, templateFile);
@@ -56,7 +67,7 @@ namespace AlarmWorkflow.Job.OperationPrinter
 
             try
             {
-                string html = CreateHtml(templateFile, to);
+                string html = CreateHtml(templateFile, source, operation);
 
                 using (FileStream stream = fi.Create())
                 {
@@ -66,6 +77,7 @@ namespace AlarmWorkflow.Job.OperationPrinter
                     stream.Write(content, 0, content.Length);
                 }
 
+                ScriptingObject to = new ScriptingObject();
                 image = RenderOperationWithBrowser(fi, to, size);
             }
             catch (Exception ex)
@@ -74,7 +86,10 @@ namespace AlarmWorkflow.Job.OperationPrinter
             }
             finally
             {
-                fi.Delete();
+                if (!KeepTempHtmlAfterFinish)
+                {
+                    fi.Delete();
+                }
             }
 
             return image;
@@ -85,7 +100,7 @@ namespace AlarmWorkflow.Job.OperationPrinter
             return Path.ChangeExtension(templateFile, operation.Id.ToString() + ".htm");
         }
 
-        private static string CreateHtml(string templateFile, ScriptingObject to)
+        private static string CreateHtml(string templateFile, PropertyLocation source, Operation operation)
         {
             StringBuilder sb = new StringBuilder();
 
@@ -97,12 +112,20 @@ namespace AlarmWorkflow.Job.OperationPrinter
 
                 /* Replace some special lines we might expect...
                  */
-                if (line.Contains("var var_awTestMode = true"))
+                if (line.Contains("var var_awSource = null"))
                 {
-                    line = "var var_awTestMode = false;";
+                    line = string.Format("var var_awSource = {0};", Json.Serialize(source));
+                }
+                else if (line.Contains("var var_awOperation = null"))
+                {
+                    line = string.Format("var var_awOperation = {0};", Json.Serialize(operation));
+                }
+                else
+                {
+                    line = ObjectFormatter.ToString(operation, line);
                 }
 
-                sb.AppendLine(ObjectFormatter.ToString(to, line));
+                sb.AppendLine(line);
             }
 
             return sb.ToString();
@@ -117,7 +140,7 @@ namespace AlarmWorkflow.Job.OperationPrinter
                 w.ScriptErrorsSuppressed = true;
 
                 w.ObjectForScripting = obj;
-                w.Navigate(new Uri("file:///" + file.FullName.Replace("\\", "/"), UriKind.Absolute));
+                w.Navigate(file.FullName);
 
                 Stopwatch s = Stopwatch.StartNew();
 

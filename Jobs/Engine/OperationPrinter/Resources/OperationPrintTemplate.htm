@@ -4,13 +4,23 @@
     <title></title>
 </head>
 <body>
+
+    <!-- Forward-declarations of some variables -->
+    <script type="text/javascript">
+        /* These variables will be filled by the OperationPrinter when executed.
+         * If opened in Internet Explorer, the script will use example values.
+         */
+        var var_awSource = null;
+        var var_awOperation = null;
+    </script>
+
     <table>
         <tr>
             <td>
                 <b>Einsatznr.:</b>
             </td>
             <td>
-                {Operation.OperationNumber}
+                {OperationNumber}
             </td>
         </tr>
         <tr>
@@ -18,7 +28,7 @@
                 <b>Stichwörter:</b>
             </td>
             <td>
-                {Operation.Keywords}
+                {Keywords}
             </td>
         </tr>
         <tr>
@@ -26,7 +36,7 @@
                 <b>Beschreibung:</b>
             </td>
             <td>
-                {Operation.Comment}
+                {Comment}
             </td>
         </tr>
         <tr>
@@ -34,7 +44,7 @@
                 <b>Meldebild:</b>
             </td>
             <td>
-                {Operation.Picture}
+                {Picture}
             </td>
         </tr>
         <tr>
@@ -42,7 +52,7 @@
                 <b>Einsatzort:</b>
             </td>
             <td>
-                {Operation.Einsatzort}
+                {Einsatzort}
             </td>
         </tr>
         <tr>
@@ -56,14 +66,6 @@
             </td>
         </tr>
     </table>
-
-    <!-- Forward-declarations of some variables -->
-    <script type="text/javascript">
-        /* This variable is only for testing the script and template locally without AlarmWorkflow.
-         * It will be set to "false" when the job processes the file.
-         */
-        var var_awTestMode = true;
-    </script>
 
     <!-- Load jQuery first and then our own script. -->
     <script type="text/javascript" src="../Scripts/jquery-2.1.3.min.js"></script>

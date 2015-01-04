@@ -1,18 +1,16 @@
 ﻿/// <reference path="..\Scripts\jquery-2.1.3.js" />
 "use strict";
 
-var awTestLocFrom = null;
-var awTestOp = null;
-if (var_awTestMode === true) {
+if (var_awOperation === null && var_awSource === null) {
 
-    awTestLocFrom = {
+    var_awSource = {
         Street: "Karlstraße",
         StreetNumber: "5",
         City: "München",
         ZipCode: "80335"
     };
 
-    awTestOp = {
+    var_awOperation = {
         Comment: "Testkommentar",
         Einsatzort: {
             Street: "Hirtenstraße",
@@ -27,13 +25,10 @@ function getLocationString(location) {
     return location.Street + " " + location.StreetNumber + ", " + location.ZipCode + " " + location.City;
 }
 
-var origin = (var_awTestMode) ? awTestLocFrom : window.external.Source;
-var operation = (var_awTestMode) ? awTestOp : window.external.Operation;
-
 var routeSrc = "";
 routeSrc += "http://maps.google.com/maps/api/directions/json?sensor=false";
-routeSrc += "&origin=" + encodeURIComponent(getLocationString(origin));
-routeSrc += "&destination=" + encodeURIComponent(getLocationString(operation.Einsatzort));
+routeSrc += "&origin=" + encodeURIComponent(getLocationString(var_awSource));
+routeSrc += "&destination=" + encodeURIComponent(getLocationString(var_awOperation.Einsatzort));
 
 $.getJSON(routeSrc, "", function (data) {
     var routePolylinePoints = data.routes[0].overview_polyline.points;
@@ -48,5 +43,7 @@ $.getJSON(routeSrc, "", function (data) {
 
     /* HINT: This is required so that the job can safely continue execution!
      */
-    window.external.setReady();
+    if (typeof window.external.setReady != "undefined") {
+        window.external.setReady();
+    }
 });
