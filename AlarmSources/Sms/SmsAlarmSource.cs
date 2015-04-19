@@ -33,6 +33,7 @@ namespace AlarmWorkflow.AlarmSource.Sms
     {
         #region Fields
 
+        private IServiceProvider _serviceProvider;
         private ISettingsServiceInternal _settings;
 
         private AlarmServer _server;
@@ -57,13 +58,18 @@ namespace AlarmWorkflow.AlarmSource.Sms
                 message = reader.ReadElementContentAsString();
             }
 
-            alarmText = _settings.GetSetting(SettingKeys.ReplaceDictionary).GetValue<ReplaceDictionary>().ReplaceInString(alarmText);
+            message = _settings.GetSetting(SettingKeys.ReplaceDictionary).GetValue<ReplaceDictionary>().ReplaceInString(message);
+
+            if (!_serviceProvider.GetService<IAlarmFilter>().QueryAcceptSource(message))
+            {
+                return;
+            }
 
             Operation operation = null;
 
             try
             {
-                operation = _parser.Parse(new[] { alarmText });
+                operation = _parser.Parse(new[] { message });
             }
             catch (Exception ex)
             {
@@ -85,6 +91,8 @@ namespace AlarmWorkflow.AlarmSource.Sms
 
         void IAlarmSource.Initialize(IServiceProvider serviceProvider)
         {
+            _serviceProvider = serviceProvider;
+
             _settings = serviceProvider.GetService<ISettingsServiceInternal>();
 
             string smsParserAlias = _settings.GetSetting(SmsSettingKeys.SmsParser).GetValue<string>();

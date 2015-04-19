@@ -129,4 +129,7 @@
   <data name="LoadIconAsyncGenericErrorOccurred" xml:space="preserve">
     <value>An unexpected error has occurred while trying to download the resource image file. Please see log for further information.</value>
   </data>
+  <data name="NoResourceGiven" xml:space="preserve">
+    <value>Neither the operationresource nor the emkresource was set. This is not allowed!</value>
+  </data>
 </root>
