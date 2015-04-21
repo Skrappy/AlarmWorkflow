@@ -35,7 +35,7 @@ namespace AlarmWorkflow.Job.OperationPrinter
     {
         #region Constants
 
-        private static readonly int WebBrowserAfterCompleteGracePeriodMs = 500;
+        private const int WebBrowserAfterCompleteGracePeriodMs = 500;
         private static readonly bool KeepTempHtmlAfterFinish = false;
 
         #endregion
@@ -58,8 +58,9 @@ namespace AlarmWorkflow.Job.OperationPrinter
         /// <param name="operation">The operation to render.</param>
         /// <param name="templateFile">The HTML template file to use for layouting.</param>
         /// <param name="size">The maximum size of the created image.</param>
+        /// <param name="timeout">The timeout to use for executing the script. The script will be terminated if it exceeds the duration.</param>
         /// <returns></returns>
-        internal static Image RenderOperation(PropertyLocation source, Operation operation, string templateFile, Size size)
+        internal static Image RenderOperation(PropertyLocation source, Operation operation, string templateFile, Size size, TimeSpan timeout)
         {
             Image image = null;
 
@@ -78,8 +79,7 @@ namespace AlarmWorkflow.Job.OperationPrinter
                     stream.Write(content, 0, content.Length);
                 }
 
-                ScriptingObject to = new ScriptingObject();
-                image = RenderOperationWithBrowser(fi, to, size);
+                image = RenderOperationWithBrowser(fi, size, timeout);
             }
             catch (Exception ex)
             {
@@ -132,8 +132,10 @@ namespace AlarmWorkflow.Job.OperationPrinter
             return sb.ToString();
         }
 
-        private static Image RenderOperationWithBrowser(FileInfo file, ScriptingObject obj, Size size)
+        private static Image RenderOperationWithBrowser(FileInfo file, Size size, TimeSpan timeout)
         {
+            ScriptingObject obj = new ScriptingObject();
+
             using (WebBrowser w = new WebBrowser())
             {
                 w.AllowNavigation = true;
@@ -158,8 +160,7 @@ namespace AlarmWorkflow.Job.OperationPrinter
                         break;
                     }
 
-                    // TODO: Introduce timeout setting!
-                    if (s.ElapsedMilliseconds >= 10000)
+                    if (s.ElapsedTicks >= (long)timeout.Ticks)
                     {
                         Logger.Instance.LogFormat(LogType.Warning, typeof(TemplateRenderer), "Exceeded timeout for rendering template! The template may not be complete.");
                         break;
