@@ -93,12 +93,8 @@ function execute() {
     };
 
 
-    /* HINT: This statement works only in IE (10+). In Chrome etc. you'll get a "same-origin" violation.
-     * For our case it shouldn't matter too much since we use the IE, but that should probably be done properly.
-     */
     try {
 
-        //Zoomlevel in Prozent
         var zoomLevel = 0.85;
 
         //Mögliche Parameter: google.maps.MapTypeId.ROADMAP, google.maps.MapTypeId.HYBRID oder google.maps.MapTypeId.TERRAIN
@@ -144,7 +140,7 @@ function execute() {
         });
 
     } catch (e) {
-        log("Error retrieving the route polyline! Reason: " + e.message);
+        log("Error retrieving the route! Reason: " + e.message);
         setReady();
     }
 
