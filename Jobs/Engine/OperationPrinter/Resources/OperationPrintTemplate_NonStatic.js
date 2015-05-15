@@ -37,7 +37,9 @@ function execute() {
             Street: "Karlstraße",
             StreetNumber: "5",
             City: "München",
-            ZipCode: "80335"
+            ZipCode: "80335",
+            GeoLatitude: 48.142792,
+            GeoLongitude: 11.567208
         };
 
         var_awOperation = {
@@ -52,7 +54,9 @@ function execute() {
                 Street: "Hirtenstraße",
                 StreetNumber: "5",
                 City: "München",
-                ZipCode: "80335"
+                ZipCode: "80335",
+                GeoLatitude: 48.142260,
+                GeoLongitude: 11.559218
             },
             Comment: "Testkommentar",
             Picture: "Hier ist etwas zu tun, dort auch, und daneben ebenfalls.",
