@@ -14,6 +14,7 @@ Generelles
   * Zu den vorhandenen Push Diensten ist Pushalot hinzugekommen. -> https://pushalot.com/
   * Einsatzinformationen - Export schreibt die Koordinaten nun in das richtige Feld.
   * ConfEd: Im Adressbuch sind die Einträge nun nach Nachname/Vorname sortiert.
+  * Als benutzerdefinierte Objektausdrücke sind nun auch Skripte in JavaScript möglich, siehe Anhang #2.
 
 Anhänge
 -------
@@ -77,3 +78,26 @@ Es empfiehlt sich, *vor* dem Ausführen dieses Skripts die Datenbank zu sichern 
   ALTER TABLE `operationresource` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
   ALTER TABLE `usersetting` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
   ALTER TABLE `dispresource` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+#2
+--
+
+  Zum Verwenden eines JavaScript-Skripts folgende Syntax verwenden:
+  
+    {$js=pfad\zur\skriptdatei.js}
+  
+  Die Skriptdatei an sich ist beispielsweise folgendermaßen aufgebaut:
+  
+    /* See below an example of a JavaScript script file.
+     */
+    function getResult(graph) {
+        return graph.Einsatzort.ZipCode;
+    }
+    
+    /* The global 'G' variable contains the 'graph' object which is to be formatted.
+     * When the script file concludes, the completion value is returned.
+     * You don't need to 'return' anything by yourself.
+     */
+    getResult(G);
+  
+  Bei Fragen zur Syntax von JavaScript bitte die bekannten Suchmaschinen oder z. B. StackOverflow.com befragen.
