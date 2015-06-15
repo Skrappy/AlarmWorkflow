@@ -45,6 +45,8 @@ namespace AlarmWorkflow.Job.OperationPrinter
         public void setReady()
         {
             IsClientSideScriptReady = true;
+
+            Logger.Instance.LogFormat(LogType.Debug, this, "ScriptingObject.setReady() has been called!");
         }
 
         /// <summary>
